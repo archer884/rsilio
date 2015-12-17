@@ -1,6 +1,7 @@
 extern crate hyper;
 
 use hyper::Client;
+use hyper::header::{Authorization, Basic};
 
 use std::io::Read;
 
@@ -21,10 +22,14 @@ impl MessagingService {
 
     pub fn send_message(&self, recipient: &str, message: &str) -> Result<String, String> {
         let res = Client::new().post(&format!(
-            "https://{sid}:{token}@api.twilio.com/2010-04-01/Accounts/{sid}/Messages",
+            "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages",
             sid = self.sid,
-            token = self.token,
-        )).body(&format!(
+        )).header(
+            Authorization(Basic {
+                username: self.sid.to_owned(),
+                password: Some(self.token.to_owned()),
+            })
+        ).body(&format!(
             "To={recipient}\nFrom={sender}\nBody={text}",
             recipient = recipient,
             sender = self.outgoing_number,
