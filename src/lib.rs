@@ -2,6 +2,8 @@ extern crate hyper;
 
 use hyper::Client;
 
+use std::io::Read;
+
 pub struct MessagingService {
     sid: String,
     token: String,
@@ -17,8 +19,8 @@ impl MessagingService {
         }
     }
 
-    pub fn send_message(&self, recipient: &str, message: &str) -> Result<(), ()> {
-        Client::new().post(&format!(
+    pub fn send_message(&self, recipient: &str, message: &str) -> Result<String, String> {
+        let res = Client::new().post(&format!(
             "https://{sid}:{token}@api.twilio.com/2010-04-01/Accounts/{sid}/Messages",
             sid = self.sid,
             token = self.token,
@@ -27,6 +29,15 @@ impl MessagingService {
             recipient = recipient,
             sender = self.outgoing_number,
             text = message,
-        )).send().map(|_| ()).map_err(|_| ())
+        )).send();
+
+        let mut buf = String::new();
+        match res {
+            Ok(mut res) => {
+                res.read_to_string(&mut buf).ok();
+                Ok(buf)
+            },
+            Err(e) => Err(format!("{:?}", e))
+        }
     }
 }
