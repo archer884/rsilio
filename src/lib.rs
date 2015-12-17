@@ -36,12 +36,12 @@ impl MessagingService {
             text = message,
         )).send();
 
-        let mut buf = String::new();
         match res {
             Ok(mut res) => {
+                let mut buf = String::new();
                 res.read_to_string(&mut buf).ok();
                 Ok(buf)
-            }
+            },
             Err(e) => Err(format!("{:?}", e)),
         }
     }
