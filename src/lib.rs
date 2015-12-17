@@ -30,7 +30,7 @@ impl MessagingService {
                 password: Some(self.token.to_owned()),
             })
         ).body(&format!(
-            "To={recipient}\nFrom={sender}\nBody={text}",
+            "To={recipient}&From={sender}&Body={text}",
             recipient = recipient,
             sender = self.outgoing_number,
             text = message,
