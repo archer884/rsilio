@@ -21,27 +21,30 @@ impl MessagingService {
     }
 
     pub fn send_message(&self, recipient: &str, message: &str) -> Result<String, String> {
-        let res = Client::new().post(&format!(
+        let res = Client::new()
+            .post(&format!(
             "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages",
             sid = self.sid,
-        )).header(Authorization(Basic {
-            username: self.sid.to_owned(),
-            password: Some(self.token.to_owned()),
-        })).header(ContentType(
-            "application/x-www-form-urlencoded".parse().unwrap()
-        )).body(&format!(
+        ))
+            .header(Authorization(Basic {
+                username: self.sid.to_owned(),
+                password: Some(self.token.to_owned()),
+            }))
+            .header(ContentType("application/x-www-form-urlencoded".parse().unwrap()))
+            .body(&format!(
             "To={recipient}&From={sender}&Body={text}&",
             recipient = recipient,
             sender = self.outgoing_number,
             text = message,
-        )).send();
+        ))
+            .send();
 
         match res {
             Ok(mut res) => {
                 let mut buf = String::new();
                 res.read_to_string(&mut buf).ok();
                 Ok(buf)
-            },
+            }
             Err(e) => Err(format!("{:?}", e)),
         }
     }
