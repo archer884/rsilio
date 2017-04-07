@@ -1,4 +1,5 @@
 extern crate hyper;
+extern crate hyper_native_tls;
 
 use hyper::Client;
 use hyper::header::{Authorization, Basic, ContentType};
@@ -21,11 +22,11 @@ impl MessagingService {
     }
 
     pub fn send_message(&self, recipient: &str, message: &str) -> Result<String, String> {
-        let res = Client::new()
+        let res = get_client()
             .post(&format!(
-            "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages",
-            sid = self.sid,
-        ))
+                "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages",
+                sid = self.sid,
+            ))
             .header(Authorization(Basic {
                 username: self.sid.to_owned(),
                 password: Some(self.token.to_owned()),
@@ -48,4 +49,14 @@ impl MessagingService {
             Err(e) => Err(format!("{:?}", e)),
         }
     }
+}
+
+fn get_client() -> Client {
+    use hyper::net::HttpsConnector;
+    use hyper_native_tls::NativeTlsClient;
+
+    let ssl = NativeTlsClient::new().unwrap();
+    let connector = HttpsConnector::new(ssl);
+    
+    Client::with_connector(connector)
 }
